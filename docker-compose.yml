@@ -1,0 +1,240 @@
+x-python-service: &python-service
+  build:
+    context: .
+    dockerfile: Dockerfile.api
+  working_dir: /app
+  restart: unless-stopped
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  read_only: true
+  tmpfs:
+    - /tmp
+  environment:
+    PYTHONUNBUFFERED: "1"
+    PYTHONPATH: /app
+    XDG_CACHE_HOME: /tmp/.cache
+    HF_HOME: /tmp/huggingface
+    MPLCONFIGDIR: /tmp/matplotlib
+  networks:
+    - threat-network
+
+services:
+  kafka:
+    image: apache/kafka:4.1.1
+    container_name: kafka
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "127.0.0.1:9092:9092"
+    volumes:
+      - kafka_data:/tmp/kraft-combined-logs
+    networks:
+      - threat-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: threat_detector_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-threat_detector}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-threat_detector}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - threat-network
+
+  api:
+    <<: *python-service
+    container_name: threat_detector_api
+    command: >
+      sh -c "python scripts/init_db_docker.py &&
+      python -m uvicorn services.api.alerts_api:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-threat_detector}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-api-key}
+      APP_ENV: ${APP_ENV:-development}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,api,testserver}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      ENABLE_DEMO_USERS: ${ENABLE_DEMO_USERS:-true}
+      DEMO_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD:-admin}
+      DEMO_ANALYST_PASSWORD: ${DEMO_ANALYST_PASSWORD:-analyst}
+      DEMO_VIEWER_PASSWORD: ${DEMO_VIEWER_PASSWORD:-viewer}
+      HEALTHCHECK_URL: http://localhost:8000/api/health
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  model-server:
+    <<: *python-service
+    container_name: threat_detector_model_server
+    command: python -m uvicorn services.model_server.app:app --host 0.0.0.0 --port 8001
+    ports:
+      - "127.0.0.1:8001:8001"
+    environment:
+      MODEL_TYPE: ${MODEL_TYPE:-structured}
+      TFIDF_MODEL_PATH: models/baseline_unsw.pkl
+      DISTILBERT_MODEL_PATH: models/distilbert_unsw
+      DEVICE: ${DEVICE:-cpu}
+      PORT: "8001"
+      HEALTHCHECK_URL: http://localhost:8001/health
+
+  detector:
+    <<: *python-service
+    container_name: threat_detector_detector
+    command: python services/detector/detector.py --threshold ${DETECTION_THRESHOLD:-0.5}
+    healthcheck:
+      disable: true
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+      IN_TOPIC: unsw_nb15.windowed
+      OUT_TOPIC: alerts
+      MODEL_SERVER_URL: http://model-server:8001
+      GROUP_ID: detector-docker
+      OFFSET_RESET: earliest
+    depends_on:
+      model-server:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  unsw-replay:
+    <<: *python-service
+    container_name: threat_detector_unsw_replay
+    profiles: ["unsw"]
+    command: >
+      python services/ingest_sim/replay_producer.py
+      --input-file /data/unsw_nb15.jsonl
+      --topic ${UNSW_WINDOWED_TOPIC:-unsw_nb15.windowed}
+      --rate ${UNSW_REPLAY_RATE:-0}
+      --count ${UNSW_REPLAY_COUNT:-0}
+    healthcheck:
+      disable: true
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+    volumes:
+      - ./data:/data:ro
+    depends_on:
+      - kafka
+
+  alert-router:
+    <<: *python-service
+    container_name: threat_detector_alert_router
+    command: python services/alert_router.py
+    healthcheck:
+      disable: true
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+      ALERTS_TOPIC: alerts
+      API_BASE_URL: http://api:8000
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-api-key}
+      GROUP_ID: alert-router-docker
+      OFFSET_RESET: earliest
+    depends_on:
+      api:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    container_name: threat_detector_dashboard
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - threat-network
+
+  prometheus:
+    image: prom/prometheus:v3.5.1
+    container_name: threat_detector_prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - threat-network
+
+  grafana:
+    image: grafana/grafana-oss:11.5.2
+    container_name: threat_detector_grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    depends_on:
+      - prometheus
+    networks:
+      - threat-network
+
+volumes:
+  kafka_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  threat-network:
+    driver: bridge

@@ -1,0 +1,57 @@
+# Shared runtime image for the Threat Detector Python services.
+FROM python:3.11-slim AS builder
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH=${VIRTUAL_ENV}/bin:$PATH
+
+WORKDIR /app
+
+RUN python -m venv ${VIRTUAL_ENV} \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+# Pull the CPU-only PyTorch wheel first so pip doesn't resolve the much larger CUDA stack.
+ARG TORCH_CPU_INDEX_URL=https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir --index-url ${TORCH_CPU_INDEX_URL} torch==2.5.1+cpu \
+    && pip install --no-cache-dir -r requirements.txt
+
+FROM python:3.11-slim
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH=${VIRTUAL_ENV}/bin:$PATH
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH=/app
+ENV XDG_CACHE_HOME=/tmp/.cache
+ENV HF_HOME=/tmp/huggingface
+ENV MPLCONFIGDIR=/tmp/matplotlib
+ENV HEALTHCHECK_URL=http://localhost:8000/api/health
+
+WORKDIR /app
+
+RUN groupadd --system app \
+    && useradd --system --gid app --create-home --home-dir /home/app app
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --chown=app:app requirements.txt .
+COPY --chown=app:app services/ ./services/
+COPY --chown=app:app scripts/ ./scripts/
+COPY --chown=app:app models/ ./models/
+COPY --chown=app:app data/ ./data/
+COPY --chown=app:app alembic/ ./alembic/
+COPY --chown=app:app alembic.ini .
+
+USER app
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import os, requests; response = requests.get(os.getenv('HEALTHCHECK_URL', 'http://localhost:8000/api/health'), timeout=5); response.raise_for_status()" || exit 1
+
+CMD ["python", "-m", "uvicorn", "services.api.alerts_api:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,89 @@
+{
+  "title": "Threat Detector System Metrics",
+  "tags": ["threat-detector", "security"],
+  "timezone": "browser",
+  "schemaVersion": 27,
+  "version": 0,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "graph",
+      "title": "API Request Rate",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[5m])",
+          "legendFormat": "{{method}} {{endpoint}}"
+        }
+      ],
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total Alerts",
+      "targets": [
+        {
+          "expr": "total_alerts_total"
+        }
+      ],
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8}
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Active Alerts",
+      "targets": [
+        {
+          "expr": "active_alerts_total"
+        }
+      ],
+      "gridPos": {"x": 0, "y": 8, "w": 6, "h": 4}
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Model Inference Time (ms)",
+      "targets": [
+        {
+          "expr": "rate(model_server_http_request_duration_seconds_sum[5m]) / rate(model_server_http_request_duration_seconds_count[5m]) * 1000"
+        }
+      ],
+      "gridPos": {"x": 6, "y": 8, "w": 6, "h": 4}
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "API Error Rate (5xx)",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{status=~\"5..\"}[5m])"
+        }
+      ],
+      "gridPos": {"x": 12, "y": 8, "w": 6, "h": 4}
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "API Uptime (s)",
+      "targets": [
+        {
+          "expr": "time() - process_start_time_seconds{job=\"api\"}"
+        }
+      ],
+      "gridPos": {"x": 18, "y": 8, "w": 6, "h": 4}
+    },
+    {
+      "id": 7,
+      "type": "graph",
+      "title": "API Success Rate",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{status=\"200\"}[5m])",
+          "legendFormat": "{{endpoint}}"
+        }
+      ],
+      "gridPos": {"x": 0, "y": 12, "w": 24, "h": 8}
+    }
+  ]
+}

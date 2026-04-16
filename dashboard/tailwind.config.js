@@ -1,0 +1,87 @@
+module.exports = {
+  darkMode: ['class'],
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        sentinel: {
+          bg: '#060e20',
+          low: '#091328',
+          panel: '#0f1930',
+          elevated: '#141f38',
+          chrome: '#192540',
+          border: '#40485d',
+          outline: '#6d758c',
+          text: '#dee5ff',
+          muted: '#a3aac4',
+          accent: '#7ee5ff',
+          accentStrong: '#04dcff',
+          accentDeep: '#005361',
+          danger: '#ff6f7e',
+          dangerDeep: '#9f0519',
+          warning: '#ffb84d',
+          success: '#78f0c9',
+        },
+        threat: {
+          deep: '#ff6f7e',
+          muted: '#ff9099',
+          bg: '#3a1020',
+        },
+        anomaly: {
+          accent: '#ffb84d',
+          light: '#ffd69f',
+          bg: '#342416',
+        },
+        insight: {
+          blue: '#7ee5ff',
+          light: '#b8f4ff',
+          bg: '#0b3040',
+        },
+        neutral: {
+          black: '#000000',
+          dark: '#060e20',
+          darker: '#091328',
+          gray: '#6d758c',
+          light: '#141f38',
+          lighter: '#40485d',
+          white: '#f5f8ff',
+          text: '#dee5ff',
+          subtext: '#a3aac4',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        editorial: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      spacing: {
+        '128': '32rem',
+        '144': '36rem',
+      },
+      fontSize: {
+        xs: ['12px', { lineHeight: '16px' }],
+        sm: ['14px', { lineHeight: '20px' }],
+        base: ['16px', { lineHeight: '24px' }],
+        lg: ['18px', { lineHeight: '28px' }],
+        xl: ['20px', { lineHeight: '28px' }],
+        '2xl': ['24px', { lineHeight: '32px' }],
+        '3xl': ['32px', { lineHeight: '40px' }],
+        '4xl': ['48px', { lineHeight: '56px' }],
+      },
+      letterSpacing: {
+        tight: '-0.02em',
+        normal: '0em',
+        wide: '0.05em',
+        widest: '0.2em',
+      },
+      boxShadow: {
+        panel: '0 16px 48px rgba(2, 8, 24, 0.36)',
+        glow: '0 0 0 1px rgba(4, 220, 255, 0.16), 0 0 32px rgba(4, 220, 255, 0.10)',
+      },
+    },
+  },
+  plugins: [],
+}

@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  @apply bg-sentinel-bg text-sentinel-text;
+  color-scheme: dark;
+}
+
+body {
+  @apply min-h-screen font-sans antialiased;
+  background:
+    radial-gradient(circle at top right, rgba(4, 220, 255, 0.10), transparent 28%),
+    radial-gradient(circle at top left, rgba(255, 111, 126, 0.08), transparent 22%),
+    linear-gradient(180deg, #091328 0%, #060e20 30%, #060e20 100%);
+}
+
+* {
+  @apply transition-colors duration-200;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #091328;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #192540;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #04dcff;
+}
+
+@layer components {
+  .heading-editorial {
+    @apply font-editorial text-4xl font-bold uppercase tracking-tight text-neutral-white md:text-5xl;
+  }
+
+  .heading-large {
+    @apply font-editorial text-3xl font-bold tracking-tight text-neutral-white;
+  }
+
+  .heading-medium {
+    @apply font-editorial text-2xl font-semibold uppercase tracking-tight text-neutral-white;
+  }
+
+  .text-quiet {
+    @apply font-mono text-[11px] uppercase tracking-[0.18em] text-neutral-subtext;
+  }
+
+  .sentinel-card {
+    @apply rounded-xl border border-sentinel-border/60 bg-sentinel-panel/90 shadow-panel backdrop-blur-md;
+  }
+
+  .sentinel-card-soft {
+    @apply rounded-xl border border-sentinel-border/30 bg-sentinel-elevated/70 backdrop-blur-sm;
+  }
+
+  .card-minimal {
+    @apply sentinel-card p-6 md:p-7;
+  }
+
+  .viz-hero {
+    @apply sentinel-card min-h-[24rem] overflow-hidden;
+  }
+
+  .sentinel-kicker {
+    @apply font-mono text-[10px] uppercase tracking-[0.28em] text-sentinel-accent;
+  }
+
+  .sentinel-subtle-grid {
+    background-image:
+      linear-gradient(rgba(64, 72, 93, 0.14) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(64, 72, 93, 0.14) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .threat-badge {
+    @apply inline-flex items-center rounded-full border border-threat-deep/25 bg-threat-bg px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-threat-muted;
+  }
+
+  .anomaly-badge {
+    @apply inline-flex items-center rounded-full border border-anomaly-accent/25 bg-anomaly-bg px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-anomaly-light;
+  }
+
+  .insight-badge {
+    @apply inline-flex items-center rounded-full border border-insight-blue/25 bg-insight-bg px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-insight-light;
+  }
+
+  .btn-quiet {
+    @apply inline-flex items-center gap-2 rounded-md border border-sentinel-border/40 bg-sentinel-elevated/40 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-sentinel-muted hover:border-sentinel-accent/40 hover:text-sentinel-accent;
+  }
+
+  .disclosure-item {
+    @apply rounded-lg border border-sentinel-border/30 bg-sentinel-bg/60 p-4;
+  }
+
+  .sentinel-table-row {
+    @apply border-b border-sentinel-border/20 hover:bg-sentinel-elevated/40;
+  }
+
+  .sentinel-terminal {
+    @apply rounded-xl border border-sentinel-border/40 bg-black/30 p-4 font-mono text-[11px] leading-6 text-sentinel-muted;
+  }
+}

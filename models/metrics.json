@@ -1,0 +1,140 @@
+{
+  "accuracy": 0.8308610079787385,
+  "balanced_accuracy": 0.7456356682591421,
+  "negative_precision": 0.9284111237599609,
+  "negative_recall": 0.5097142857142857,
+  "negative_f1": 0.6581128595308087,
+  "positive_precision": 0.8101192287476832,
+  "positive_recall": 0.9815570508039986,
+  "positive_f1": 0.887636064666947,
+  "negative_support": 56000,
+  "positive_support": 119341,
+  "macro_precision": 0.869265176253822,
+  "macro_recall": 0.7456356682591421,
+  "macro_f1": 0.7728744620988779,
+  "weighted_precision": 0.8478990185326596,
+  "weighted_recall": 0.8308610079787385,
+  "weighted_f1": 0.8143314782460657,
+  "confusion_matrix": [
+    [
+      28544,
+      27456
+    ],
+    [
+      2201,
+      117140
+    ]
+  ],
+  "n_samples": 175341,
+  "roc_auc": 0.8807773715954401,
+  "average_precision": 0.9267310427219685,
+  "threshold": 0.2788796377442393,
+  "threshold_mode": "global_threshold",
+  "thresholds_used": [
+    0.2788796377442393
+  ],
+  "model": "structured_baseline",
+  "split_mode": "none",
+  "split_mode_requested": "none",
+  "feature_schema": "network_flow_v1",
+  "feature_version": 7,
+  "quality_gate": {
+    "promotion_ready": true,
+    "blocker_codes": [],
+    "blockers": [],
+    "criteria": {
+      "requires_holdout_source": true,
+      "min_holdout_positive_f1": 0.6,
+      "min_holdout_negative_recall": 0.4,
+      "strong_holdout_labels_required": true
+    },
+    "observed": {
+      "dataset_source_count": 2,
+      "holdout_source": "unsw_nb15_test",
+      "holdout_label_sources": {
+        "dataset_ground_truth": 175341
+      },
+      "holdout_structured_positive_f1": 0.887636064666947,
+      "holdout_negative_recall": 0.5097142857142857
+    }
+  },
+  "comparisons": {
+    "structured_baseline": {
+      "accuracy": 0.8308610079787385,
+      "balanced_accuracy": 0.7456356682591421,
+      "negative_precision": 0.9284111237599609,
+      "negative_recall": 0.5097142857142857,
+      "negative_f1": 0.6581128595308087,
+      "positive_precision": 0.8101192287476832,
+      "positive_recall": 0.9815570508039986,
+      "positive_f1": 0.887636064666947,
+      "negative_support": 56000,
+      "positive_support": 119341,
+      "macro_precision": 0.869265176253822,
+      "macro_recall": 0.7456356682591421,
+      "macro_f1": 0.7728744620988779,
+      "weighted_precision": 0.8478990185326596,
+      "weighted_recall": 0.8308610079787385,
+      "weighted_f1": 0.8143314782460657,
+      "confusion_matrix": [
+        [
+          28544,
+          27456
+        ],
+        [
+          2201,
+          117140
+        ]
+      ],
+      "n_samples": 175341,
+      "roc_auc": 0.8807773715954401,
+      "average_precision": 0.9267310427219685,
+      "threshold": 0.2788796377442393,
+      "threshold_mode": "global_threshold",
+      "thresholds_used": [
+        0.2788796377442393
+      ]
+    },
+    "text_tfidf": {
+      "accuracy": 0.8751062215910711,
+      "balanced_accuracy": 0.8892757665010349,
+      "negative_precision": 0.7439584495857836,
+      "negative_recall": 0.9285,
+      "negative_f1": 0.8260479303524477,
+      "positive_precision": 0.9620293978188715,
+      "positive_recall": 0.8500515330020697,
+      "positive_f1": 0.9025806193308451,
+      "negative_support": 56000,
+      "positive_support": 119341,
+      "macro_precision": 0.8529939237023276,
+      "macro_recall": 0.8892757665010349,
+      "macro_f1": 0.8643142748416464,
+      "weighted_precision": 0.8923824065216113,
+      "weighted_recall": 0.8751062215910711,
+      "weighted_f1": 0.8781377874615719,
+      "confusion_matrix": [
+        [
+          51996,
+          4004
+        ],
+        [
+          17895,
+          101446
+        ]
+      ],
+      "n_samples": 175341,
+      "roc_auc": 0.9642455191426249,
+      "average_precision": 0.9833213584161759
+    },
+    "rule_baseline": {
+      "disabled": true,
+      "reason": "rule_baseline_not_supported_for_feature_schema",
+      "feature_schema": "network_flow_v1"
+    },
+    "legacy_rule": {
+      "disabled": true,
+      "reason": "legacy_rule_not_supported_for_feature_schema",
+      "feature_schema": "network_flow_v1"
+    }
+  }
+}

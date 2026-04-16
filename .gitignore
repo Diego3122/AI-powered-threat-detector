@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.pytest_tmp*/
+pytest_tmp*/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+*.sarif
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local env files
+.env
+.env.*
+!.env.example
+.envrc
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node / frontend
+dashboard/node_modules/
+dashboard/dist/
+
+# Runtime and logs
+*.log
+tmp/
+pytest_tmp_files/
+*.sqlite3
+*.db
+
+# Model training artifacts
+models/distilbert_finetuned/checkpoint-*/
+models/distilbert_finetuned/**/*.pt
+models/distilbert_finetuned/**/*.pth
+models/distilbert_finetuned/**/*.safetensors
+models/distilbert_finetuned/**/*.bin
+!models/distilbert_finetuned/config.json
+!models/distilbert_finetuned/tokenizer.json
+!models/distilbert_finetuned/tokenizer_config.json
+!models/distilbert_finetuned/special_tokens_map.json
+!models/distilbert_finetuned/vocab.txt
+# Keep only canonical model files; exclude experiment variants and temp outputs
+models/tmp_*
+models/credibility_report*
+models/review_credibility*
+models/baseline_*.pkl
+models/baseline_*.manifest.json
+models/baseline_unsw*.pkl
+models/baseline_unsw*.manifest.json
+# Allow canonical baseline (CloudTrail) and the UNSW baseline once trained
+!models/baseline.pkl
+!models/baseline.manifest.json
+!models/baseline_unsw.pkl
+!models/baseline_unsw.manifest.json
+
+# Dataset files — too large for git; download and convert locally
+data/*.csv
+data/*.jsonl
+data/*.json
+data/external/
+data/regenerated/
