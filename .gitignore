@@ -78,3 +78,5 @@ data/*.jsonl
 data/*.json
 data/external/
 data/regenerated/
+
+models/distilbert_unsw/model.safetensors
